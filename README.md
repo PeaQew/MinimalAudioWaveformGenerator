@@ -3,7 +3,7 @@
 <b>A small console-application that generates simple-looking audio waveforms, perfect for a minimal aesthetic.</b>
 </p>
 
-This projects is using [Un4seen's Bass library](http://www.un4seen.com/).
+This projects is using [Un4seen's BASS library](http://www.un4seen.com/).
 
 ## Prerequisites
 
