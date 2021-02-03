@@ -3,3 +3,4 @@ obj/
 *csproj.user
 Properties/
 \.vs/
+\.idea/

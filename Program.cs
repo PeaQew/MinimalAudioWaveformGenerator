@@ -20,6 +20,7 @@ namespace MinimalAudioWaveformGenerator
 		private static string lastParamsLocation = Environment.CurrentDirectory + "\\last_params.xml";
 
 		private static bool finishedDrawing = false;
+
 		static void Main(string[] args)
 		{
 			AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
@@ -30,11 +31,13 @@ namespace MinimalAudioWaveformGenerator
 				Console.ReadKey(true);
 				Environment.Exit(-1);
 			}
+
 			ReadLastParams();
 			if (args.Length > 1)
 			{
 				RunGenerator(args[0]);
 			}
+
 			while (true)
 			{
 				if (finishedDrawing)
@@ -46,6 +49,7 @@ namespace MinimalAudioWaveformGenerator
 						Console.WriteLine("Do you wish to draw a waveform using the same audio file again? (y/n)");
 						answer = Console.ReadLine();
 					}
+
 					if (answer == "y")
 						RunGenerator(lastParameters.AudioLocation);
 				}
@@ -86,9 +90,11 @@ namespace MinimalAudioWaveformGenerator
 							Console.ResetColor();
 							input = "";
 						}
+
 						break;
 				}
 			}
+
 			return input;
 		}
 
@@ -118,6 +124,7 @@ namespace MinimalAudioWaveformGenerator
 			{
 				audioLocation = GetAudioLocation();
 			}
+
 			int handle = Bass.CreateStream(audioLocation, 0, 0, BassFlags.Decode | BassFlags.Float);
 
 			while (Bass.LastError != Errors.OK)
@@ -130,18 +137,19 @@ namespace MinimalAudioWaveformGenerator
 				audioLocation = GetAudioLocation();
 				handle = Bass.CreateStream(audioLocation, 0, 0, BassFlags.Decode | BassFlags.Float);
 			}
+
 			HighlightColors();
-			Console.WriteLine($" { Bass.LastError } ");
+			Console.WriteLine($" {Bass.LastError} ");
 			Console.ResetColor();
 
 			long byteLength = Bass.ChannelGetLength(handle, PositionFlags.Bytes);
 			int bitsPerSample = GetBitsPerSample(handle);
 			int bytesPerSample = bitsPerSample / 8;
-			int lengthInSeconds = (int)Bass.ChannelBytes2Seconds(handle, byteLength);
+			int lengthInSeconds = (int) Bass.ChannelBytes2Seconds(handle, byteLength);
 
 			Console.ForegroundColor = ConsoleColor.Yellow;
-			Console.WriteLine($"Length: {byteLength} bytes ({ lengthInSeconds / 60 }m{ lengthInSeconds % 60 }s)");
-			Console.WriteLine($"Bits Per Sample: {bitsPerSample} ({ GetBitsPerSampleString(bitsPerSample) }");
+			Console.WriteLine($"Length: {byteLength} bytes ({lengthInSeconds / 60}m{lengthInSeconds % 60}s)");
+			Console.WriteLine($"Bits Per Sample: {bitsPerSample} ({GetBitsPerSampleString(bitsPerSample)}");
 			Console.ResetColor();
 
 			WaveformParameters parameters = new WaveformParameters();
@@ -152,7 +160,7 @@ namespace MinimalAudioWaveformGenerator
 			parameters.ImageWidth = int.Parse(ShowPrompt("Set Image Width: ", typeof(int)));
 			parameters.PeakHeight = int.Parse(ShowPrompt("Set Peak Height: ", typeof(int)));
 
-			int samplesPerPixel = (int)byteLength / parameters.ImageWidth;
+			int samplesPerPixel = (int) byteLength / parameters.ImageWidth;
 			int stepSize = parameters.BlockSize + parameters.SpaceSize;
 			float[] buffer = new float[samplesPerPixel * stepSize];
 
@@ -186,7 +194,9 @@ namespace MinimalAudioWaveformGenerator
 			string audioLocation = "";
 			while (!File.Exists(audioLocation))
 			{
-				audioLocation = ShowPrompt("Specify the location of the audio file (drag and drop -> enter also works): ", typeof(string));
+				audioLocation =
+					ShowPrompt("Specify the location of the audio file (drag and drop -> enter also works): ",
+						typeof(string));
 				audioLocation = audioLocation.Replace("\"", string.Empty);
 				if (!File.Exists(audioLocation))
 				{
@@ -195,6 +205,7 @@ namespace MinimalAudioWaveformGenerator
 					Console.ResetColor();
 				}
 			}
+
 			return audioLocation;
 		}
 
@@ -234,16 +245,18 @@ namespace MinimalAudioWaveformGenerator
 						if (bytesRead == -1)
 						{
 							HighlightColors();
-							Console.WriteLine($" { Bass.LastError } ");
+							Console.WriteLine($" {Bass.LastError} ");
 							Console.ResetColor();
 							break;
 						}
+
 						float sum = buffer.Select(s => Math.Abs(s)).Sum();
 						values.Add((sum / bytesRead) * scale);
 
 						Console.WriteLine($"At {counter} ({bytesRead} bytes): {values.Last()}");
 						counter++;
 					}
+
 					break;
 				case 2: // Absolute Peak
 					while ((bytesRead = Bass.ChannelGetData(handle, buffer, buffer.Length)) != 0)
@@ -251,17 +264,20 @@ namespace MinimalAudioWaveformGenerator
 						if (bytesRead == -1)
 						{
 							HighlightColors();
-							Console.WriteLine($" { Bass.LastError } ");
+							Console.WriteLine($" {Bass.LastError} ");
 							Console.ResetColor();
 							break;
 						}
+
 						values.Add(buffer.Select(x => Math.Abs(x)).Max());
 
 						Console.WriteLine($"At {counter} ({bytesRead} bytes): {values.Last()}");
 						counter++;
 					}
+
 					break;
 			}
+
 			return values;
 		}
 
@@ -277,13 +293,15 @@ namespace MinimalAudioWaveformGenerator
 				Brush brush = new SolidBrush(Color.White);
 				for (int i = 0; i < values.Count; i++)
 				{
-					g.FillRectangle(brush, xPos, parameters.PeakHeight - (parameters.PeakHeight * values[i]), parameters.BlockSize, parameters.PeakHeight * values[i]);
+					g.FillRectangle(brush, xPos, parameters.PeakHeight - (parameters.PeakHeight * values[i]),
+						parameters.BlockSize, parameters.PeakHeight * values[i]);
 					xPos += parameters.BlockSize + parameters.SpaceSize;
 				}
+
 				string fileLocation = Environment.CurrentDirectory + "\\Waveform.png";
 				image.Save(@fileLocation, ImageFormat.Png);
 				HighlightColors();
-				Console.WriteLine($"Image saved to { fileLocation }\n");
+				Console.WriteLine($"Image saved to {fileLocation}\n");
 				Console.ResetColor();
 				lastParameters = parameters;
 				SaveLastParams();
@@ -315,6 +333,7 @@ namespace MinimalAudioWaveformGenerator
 					Console.WriteLine($"Peak Calculation Strategy: Absolute Peak\n");
 				}
 			}
+
 			Console.ResetColor();
 		}
 
@@ -337,7 +356,10 @@ namespace MinimalAudioWaveformGenerator
 
 		public static void SerializeObject<T>(T serializableObject, string fileName)
 		{
-			if (serializableObject == null) { return; }
+			if (serializableObject == null)
+			{
+				return;
+			}
 
 			try
 			{
@@ -361,7 +383,10 @@ namespace MinimalAudioWaveformGenerator
 
 		public static T DeserializeObject<T>(string fileName)
 		{
-			if (string.IsNullOrEmpty(fileName)) { return default; }
+			if (string.IsNullOrEmpty(fileName))
+			{
+				return default;
+			}
 
 			T objectOut = default;
 
@@ -378,7 +403,7 @@ namespace MinimalAudioWaveformGenerator
 					XmlSerializer serializer = new XmlSerializer(outType);
 					using (XmlReader reader = new XmlTextReader(read))
 					{
-						objectOut = (T)serializer.Deserialize(reader);
+						objectOut = (T) serializer.Deserialize(reader);
 					}
 				}
 			}
